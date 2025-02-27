@@ -1,0 +1,28 @@
+name: solar system workflow
+
+on:
+    workflow_dispatch:
+    push: #triggered whenever we push to the main branch or to feature/* branch
+        branches:
+            - main
+            - 'feature/*'
+
+jobs:
+    unit-testing:
+        name: unit testing
+        runs-on: ubuntu-latest
+        steps:
+        - name: checkout repo
+          uses: actions/checkout@v4
+        
+        - name: setup nodejs version - 18
+          uses: actions/setup-node@v3
+          with: #with keyword to add aditional info.
+            node-version: 18
+
+        - name: install dependencies
+          run: npm install
+
+        - name: unit testing
+          run: npm test
+
