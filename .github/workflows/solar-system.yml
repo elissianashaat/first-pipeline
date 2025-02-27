@@ -30,3 +30,9 @@ jobs:
         - name: unit testing
           run: npm test
 
+        - name: archive test result
+          uses: actions/upload-artifact@v1
+          with:
+            name: mocha-test-result
+            path: test-results.xml
+
