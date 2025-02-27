@@ -31,7 +31,7 @@ jobs:
           run: npm test
 
         - name: archive test result
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: mocha-test-result
             path: test-results.xml
