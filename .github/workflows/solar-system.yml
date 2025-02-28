@@ -54,16 +54,28 @@ jobs:
     
     code-coverage:
         name: code coverage
-        continue-on-error: true
+        container:
+          image: node:18
+        services:
+          mongo-db:
+            image: siddharth67/mango-db:non-prod
+            options:
+              --name mango
+            #ports:
+            #  - 27017:27017 #no need for port mapping bec it's container talking to another container
+        env:
+            MANGO_URI: 'mangodb://mango:27107/superData'
+            MANGO_USERNAME: non-prod-username
+            MANGO_PASSWORD: non-prod-password
         runs-on: ubuntu-latest
         steps:
             - name: checkout repo
               uses: actions/checkout@v4
             
-            - name: setup nodejs version - 18
-              uses: actions/setup-node@v3
-              with:
-                node-version: 18
+          #  - name: setup nodejs version - 18
+          #    uses: actions/setup-node@v3
+          #    with:
+          #      node-version: 18
             
             - name: install dependencies
               run: npm install
