@@ -20,7 +20,7 @@ jobs:
             ports:
               - 27017:27017
         env:
-          MANGO_URI: 'mangodb//localhost:27107/superData'
+          MANGO_URI: 'mangodb://localhost:27107/superData'
           MANGO_USERNAME: non-prod-username
           MANGO_PASSWORD: non-prod-password
         strategy:
