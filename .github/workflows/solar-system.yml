@@ -14,6 +14,15 @@ env:
 jobs:
     unit-testing:
         name: unit testing
+        services:
+          mongo-db:
+            image: siddharth67/mango-db:non-prod
+            ports:
+              - 27017:27017
+        env:
+          MANGO_URI: 'mangodb//localhost:27107/superData'
+          MANGO_USERNAME: non-prod-username
+          MANGO_PASSWORD: non-prod-password
         strategy:
             matrix:
                 nodejs_version: [18, 19, 20]
