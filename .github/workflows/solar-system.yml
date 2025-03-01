@@ -57,13 +57,22 @@ jobs:
         runs-on: ubuntu-latest
         services:
           mongo-db:
-            image: mongo:4.4
+            image: siddharth67/mongo-db:non-prod
             ports:
               - 27017:27017
         env:
             MANGO_URI: 'mangodb://localhost:27017/superData'
             MANGO_USERNAME: non-prod-username
             MANGO_PASSWORD: non-prod-password
+
+        strategy:
+          matrix:
+            nodejs_version: [18, 20]
+            operating_system: [ubuntu-latest]
+            exclude:
+              - nodejs_version: 18
+                operating_system: macos_latest
+        runs-on: ${{ matrix.operating_system }}
         steps:
             - name: checkout repo
               uses: actions/checkout@v4
