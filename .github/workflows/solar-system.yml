@@ -54,7 +54,6 @@ jobs:
     
     code-coverage:
         name: code coverage
-        runs-on: ubuntu-latest
         services:
           mongo-db:
             image: siddharth67/mongo-db:non-prod
