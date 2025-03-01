@@ -6,11 +6,12 @@ on:
         branches:
             - main
             - 'feature/*'
-#the job without env vars failed because we need to path them here.
+
 env: 
-    MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
+    MONGO_URI: ${{ vars.MONGO_URI }}
     MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
     MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+
 jobs:
     unit-testing:
         name: unit testing
@@ -20,9 +21,9 @@ jobs:
             ports:
               - 27017:27017
         env:
-          MANGO_URI: 'mangodb://localhost:27107/superData'
-          MANGO_USERNAME: non-prod-username
-          MANGO_PASSWORD: non-prod-password
+          MONGO_URI: 'mongodb://localhost:27017/superData'
+          MONGO_USERNAME: non-prod-username
+          MONGO_PASSWORD: non-prod-password
         strategy:
             matrix:
                 nodejs_version: [18, 19, 20]
@@ -61,9 +62,9 @@ jobs:
             ports:
               - 27017:27017
         env:
-            MANGO_URI: 'mangodb://localhost:27017/superData'
-            MANGO_USERNAME: non-prod-username
-            MANGO_PASSWORD: non-prod-password
+            MONGO_URI: 'mongodb://localhost:27017/superData'
+            MONGO_USERNAME: non-prod-username
+            MONGO_PASSWORD: non-prod-password
         steps:
             - name: checkout repo
               uses: actions/checkout@v4
@@ -129,14 +130,13 @@ jobs:
           uses: azure/setup-kubectl@v4
           with:
               version: 'v1.26.0'
-
+       
         - name: Set Kubeconfig File
           uses: azure/k8s-set-context@v4
           with:
             method: kubeconfig
             kubeconfig: ${{ secrets.KUBECONFIG }}
      
-#kubectl config file is required in order to connect with the cluster and communicate with the cluster
         - name: fetch kubernetes cluster details
           run: |
             kubectl version --short -o yaml
