@@ -130,6 +130,13 @@ jobs:
           with:
               version: 'v1.26.0'
 
+        - name: Set Kubeconfig File
+          uses: azure/k8s-set-context@v4
+          with:
+            method: kubeconfig
+            kubeconfig: ${{ secrets.KUBECONFIG }}
+     
+#kubectl config file is required in order to connect with the cluster and communicate with the cluster
         - name: fetch kubernetes cluster details
           run: |
             kubectl version --short -o yaml
