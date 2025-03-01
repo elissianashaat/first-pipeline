@@ -16,7 +16,7 @@ jobs:
         name: unit testing
         services:
           mongo-db:
-            image: mongo:4.4
+            image: siddharth67/mongo-db:non-prod
             ports:
               - 27017:27017
         env:
