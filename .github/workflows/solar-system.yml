@@ -109,14 +109,6 @@ jobs:
             echo Testing Image URL using wget
             wget -q -O - 127.0.0.1:3000/live | grep live
 
-        - name: Push Docker images (if credentials exist)
-          if: ${{ vars.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_PASSWORD != '' }}
-          uses: docker/build-push-action@v6.15.0
-          with:
-            context: .
-            push: true
-            tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-
     dev-deploy:
       needs: docker
       runs-on: ubuntu-latest
