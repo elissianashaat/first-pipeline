@@ -6,12 +6,11 @@ on:
         branches:
             - main
             - 'feature/*'
-
+#the job without env vars failed because we need to path them here.
 env: 
-    MONGO_URI: ${{ vars.MONGO_URI }}
+    MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
     MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
     MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
-
 jobs:
     unit-testing:
         name: unit testing
@@ -21,9 +20,9 @@ jobs:
             ports:
               - 27017:27017
         env:
-          MONGO_URI: 'mongodb://localhost:27017/superData'
-          MONGO_USERNAME: non-prod-username
-          MONGO_PASSWORD: non-prod-password
+          MANGO_URI: 'mangodb://localhost:27107/superData'
+          MANGO_USERNAME: non-prod-username
+          MANGO_PASSWORD: non-prod-password
         strategy:
             matrix:
                 nodejs_version: [18, 19, 20]
@@ -62,9 +61,9 @@ jobs:
             ports:
               - 27017:27017
         env:
-            MONGO_URI: 'mongodb://localhost:27017/superData'
-            MONGO_USERNAME: non-prod-username
-            MONGO_PASSWORD: non-prod-password
+            MANGO_URI: 'mangodb://localhost:27017/superData'
+            MANGO_USERNAME: non-prod-username
+            MANGO_PASSWORD: non-prod-password
         steps:
             - name: checkout repo
               uses: actions/checkout@v4
@@ -79,16 +78,6 @@ jobs:
 
             - name: check code coverage
               run: npm run coverage
-              # Add this to bypass actual coverage test if needed
-              continue-on-error: true
-
-            - name: create mock coverage output if needed
-              run: |
-                if [ ! -d "coverage" ]; then
-                  echo "Creating mock coverage output"
-                  mkdir -p coverage
-                  echo "Mock coverage report" > coverage/index.html
-                fi
 
             - name: archive test result
               uses: actions/upload-artifact@v4
@@ -105,20 +94,7 @@ jobs:
         - name: checkout
           uses: actions/checkout@v4
 
-        - name: Mock Docker build (for practice)
-          run: |
-            echo "Creating mock Docker image for testing"
-            mkdir -p mock-image
-            echo "FROM node:18" > mock-image/Dockerfile
-            echo "CMD ['echo', 'This is a mock container']" >> mock-image/Dockerfile
-            docker build -t local/solar-system:test mock-image/
-
-        - name: Mock Docker Image Test
-          run: |
-            docker images
-            echo "PASS: Mock image created successfully"
-            echo "Ready to proceed to Kubernetes practice"
-
+       
     dev-deploy:
       needs: docker
       runs-on: ubuntu-latest
@@ -130,15 +106,16 @@ jobs:
           uses: azure/setup-kubectl@v4
           with:
               version: 'v1.26.0'
-       
+            
         - name: Set Kubeconfig File
           uses: azure/k8s-set-context@v4
           with:
             method: kubeconfig
             kubeconfig: ${{ secrets.KUBECONFIG }}
      
+#kubectl config file is required in order to connect with the cluster and communicate with the cluster
         - name: fetch kubernetes cluster details
           run: |
             kubectl version --short -o yaml
             echo ---------------------
-            kubectl get nodes
+            akubectl get nodes
