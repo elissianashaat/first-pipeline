@@ -2,15 +2,16 @@ name: solar system workflow
 
 on:
     workflow_dispatch:
-    push: #triggered whenever we push to the main branch or to feature/* branch
+    push:
         branches:
             - main
             - 'feature/*'
-#the job without env vars failed because we need to path them here.
+
 env: 
     MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
     MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
     MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+
 jobs:
     unit-testing:
         name: unit testing
@@ -20,16 +21,13 @@ jobs:
             ports:
               - 27017:27017
         env:
-          MANGO_URI: 'mangodb://localhost:27107/superData'
-          MANGO_USERNAME: non-prod-username
-          MANGO_PASSWORD: non-prod-password
+          MONGO_URI: 'mongodb://localhost:27017/superData'
+          MONGO_USERNAME: non-prod-username
+          MONGO_PASSWORD: non-prod-password
         strategy:
             matrix:
                 nodejs_version: [18, 19, 20]
                 operating_system: [ubuntu-latest]
-                exclude:
-                    - nodejs_version: 18
-                      operating_system: macos-latest
         runs-on: ${{ matrix.operating_system }}
         steps:
         - name: checkout repo
@@ -37,7 +35,7 @@ jobs:
         
         - name: setup nodejs version - ${{ matrix.nodejs_version }}
           uses: actions/setup-node@v3
-          with: #with keyword to add aditional info.
+          with:
             node-version: ${{ matrix.nodejs_version }}
 
         - name: install dependencies
@@ -61,21 +59,14 @@ jobs:
             image: siddharth67/mango-db:non-prod
             options:
               --name mango
-            #ports:
-            #  - 27017:27017 #no need for port mapping bec it's container talking to another container
         env:
-            MANGO_URI: 'mangodb://mango:27107/superData'
-            MANGO_USERNAME: non-prod-username
-            MANGO_PASSWORD: non-prod-password
+            MONGO_URI: 'mongodb://mango:27017/superData'
+            MONGO_USERNAME: non-prod-username
+            MONGO_PASSWORD: non-prod-password
         runs-on: ubuntu-latest
         steps:
             - name: checkout repo
               uses: actions/checkout@v4
-            
-          #  - name: setup nodejs version - 18
-          #    uses: actions/setup-node@v3
-          #    with:
-          #      node-version: 18
             
             - name: install dependencies
               run: npm install
@@ -89,6 +80,7 @@ jobs:
                 name: code-coverage-result
                 path: coverage
                 retention-days: 5
+
     docker:
         name: containerization
         needs: [unit-testing, code-coverage]
@@ -97,38 +89,48 @@ jobs:
         - name: checkout
           uses: actions/checkout@v4
 
-        - name: dockerhub login
-          uses: docker/login-action@2.2.0
-          with:
-            username: ${{ vars.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-        - name: Build Docker images
+        - name: Build Docker image
           uses: docker/build-push-action@v6.15.0
           with:
-            context: . #accepts a path where you have a dockerfile
+            context: .
             push: false
-            tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+            tags: solar-system:${{ github.sha }}
 
         - name: Docker Image Test
           run: |
             docker images
             docker run --name solar-system-app -d \
               -p 3000:3000 \
-              -e MANGO_URI=$MANGO_URI \
-              -e MANGO_USERNAME=$MANGO_USERNAME \
-              -e MANGO_PASSWORD=$MANGO_PASSWORD \
-              ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-
-            export IP=$(docker inspece -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' solar-system-app)
-            echo $IP
+              -e MONGO_URI=$MONGO_URI \
+              -e MONGO_USERNAME=$MONGO_USERNAME \
+              -e MONGO_PASSWORD=$MONGO_PASSWORD \
+              solar-system:${{ github.sha }}
 
             echo Testing Image URL using wget
             wget -q -O - 127.0.0.1:3000/live | grep live
 
-        - name: Push Docker images
+        - name: Push Docker images (if credentials exist)
+          if: ${{ vars.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_PASSWORD != '' }}
           uses: docker/build-push-action@v6.15.0
           with:
-            context: . #accepts a path where you have a dockerfile
+            context: .
             push: true
             tags: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+
+    dev-deploy:
+      needs: docker
+      runs-on: ubuntu-latest
+      steps:
+        - name: checkout
+          uses: actions/checkout@v4
+
+        - name: Install kubectl CLI
+          uses: azure/setup-kubectl@v4
+          with:
+              version: 'v1.26.0'
+
+        - name: fetch kubernetes cluster details
+          run: |
+            kubectl version --short -o yaml
+            echo ---------------------
+            kubectl get nodes
