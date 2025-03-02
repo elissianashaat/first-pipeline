@@ -37,7 +37,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: key: '${{ runner.os }}-node-modules-${{ hashFiles("package-lock.json") }}'
+          key: "${{ runner.os }}-node-modules-${{ hashFiles('package-lock.json') }}"
   code-coverage:
     runs-on: ubuntu-latest
     steps:
