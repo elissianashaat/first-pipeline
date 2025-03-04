@@ -113,8 +113,7 @@ jobs:
       mongodb-uri: ${{ vars.MONGO_URI }}
       environment: production
       k8s-manifest-dir: kubernetes/production/
-
-
+        
 
   prod-integration-test:
     if: github.ref == 'refs/heads/main'
