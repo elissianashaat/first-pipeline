@@ -27,13 +27,18 @@ on:
           required: true
           type: string
 
+      outputs:
+        application-url:
+          value: ${{ jobs.reuse-deploy.outputs.APP_INGRESS_URL }}
+
+
 jobs:
     reuse-deploy:
         environment: 
             name: ${{ inputs.environment }}
             url: https://${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
         outputs:
-            APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.APP_INGRESS_HOST }}
+            APP_INGRESS_URL: ${{ steps.set-ingress-host-address.outputs.application-url }}
         runs-on: ubuntu-latest
         steps:
             - name: checkout
